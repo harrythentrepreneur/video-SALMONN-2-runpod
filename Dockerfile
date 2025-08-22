@@ -1,6 +1,6 @@
 # RunPod Dockerfile for video-SALMONN 2
 # Using RunPod's base image for better compatibility
-FROM runpod/pytorch:2.1.0-py3.10-cuda12.1.0-devel-ubuntu22.04
+FROM runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04
 
 # Set working directory
 WORKDIR /workspace

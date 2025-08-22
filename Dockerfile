@@ -27,7 +27,9 @@ RUN pip install --upgrade pip
 COPY requirements_runpod.txt /workspace/requirements_runpod.txt
 # Install each requirement separately to avoid failures
 RUN pip install --no-cache-dir torch==2.1.0 torchvision==0.16.0
-RUN pip install --no-cache-dir transformers accelerate tokenizers sentencepiece
+# Install transformers with specific version that works with torch 2.1.0
+RUN pip install --no-cache-dir transformers==4.35.0
+RUN pip install --no-cache-dir accelerate tokenizers sentencepiece
 RUN pip install --no-cache-dir peft bitsandbytes
 RUN pip install --no-cache-dir runpod requests pillow numpy
 RUN pip install --no-cache-dir ffmpeg-python opencv-python-headless

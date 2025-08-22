@@ -41,20 +41,46 @@ def handler(event: Dict[str, Any]) -> Dict[str, Any]:
     RunPod handler for video processing
     """
     try:
-        logger.info(f"Received request: {json.dumps(event, indent=2)[:500]}...")
+        # Log the full event structure for debugging
+        logger.info("=" * 50)
+        logger.info("FULL EVENT RECEIVED:")
+        logger.info(json.dumps(event, indent=2)[:1000])
+        logger.info("=" * 50)
         
-        # Parse input
-        input_data = event.get('input', {})
-        video_input = input_data.get('video', '')
+        # Parse input - handle both direct and nested input
+        if 'input' in event:
+            input_data = event['input']
+        else:
+            input_data = event
+        
+        # Try to get video from different possible locations
+        video_input = (
+            input_data.get('video') or 
+            input_data.get('video_url') or 
+            input_data.get('video_base64') or 
+            ''
+        )
+        
         prompt = input_data.get('prompt', 'Describe this video')
         fps = float(input_data.get('fps', 1.0))
         max_frames = int(input_data.get('max_frames', 10))
         
+        logger.info(f"Parsed - Video: {video_input[:100] if video_input else 'NONE'}...")
+        logger.info(f"Parsed - Prompt: {prompt}")
+        logger.info(f"Parsed - FPS: {fps}, Max Frames: {max_frames}")
+        
         # Validate input
         if not video_input:
+            logger.error("No video input found in request")
             return {
-                "error": "No video input provided",
-                "status": "failed"
+                "output": {
+                    "error": "No video input provided",
+                    "status": "failed",
+                    "debug": {
+                        "received_keys": list(input_data.keys()),
+                        "event_keys": list(event.keys())
+                    }
+                }
             }
         
         # Process based on available libraries
@@ -77,14 +103,12 @@ def handler(event: Dict[str, Any]) -> Dict[str, Any]:
             time.sleep(2)
             
             result = {
-                "output": {
-                    "caption": caption,
-                    "metadata": {
-                        "fps_used": fps,
-                        "num_frames": max_frames,
-                        "model_mode": True,
-                        "processing_time": 2.0
-                    }
+                "caption": caption,
+                "metadata": {
+                    "fps_used": fps,
+                    "num_frames": max_frames,
+                    "model_mode": True,
+                    "processing_time": 2.0
                 }
             }
         else:
@@ -94,14 +118,12 @@ def handler(event: Dict[str, Any]) -> Dict[str, Any]:
             caption = f"[Demo Mode] Would process video with {max_frames} frames at {fps} FPS. Prompt: {prompt}"
             
             result = {
-                "output": {
-                    "caption": caption,
-                    "metadata": {
-                        "fps_used": fps,
-                        "num_frames": max_frames,
-                        "model_mode": False,
-                        "demo": True
-                    }
+                "caption": caption,
+                "metadata": {
+                    "fps_used": fps,
+                    "num_frames": max_frames,
+                    "model_mode": False,
+                    "demo": True
                 }
             }
         

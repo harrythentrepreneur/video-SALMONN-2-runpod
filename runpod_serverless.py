@@ -25,14 +25,25 @@ logger = logging.getLogger(__name__)
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import runpod
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoProcessor
 import numpy as np
 from PIL import Image
-import decord
-from decord import VideoReader, cpu
 
-# Set decord bridge
-decord.bridge.set_bridge('native')
+# Try to import dependencies, fall back if not available
+try:
+    from transformers import AutoTokenizer, AutoModelForCausalLM, AutoProcessor
+    TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    logger.warning("Transformers not available, using mock mode")
+    TRANSFORMERS_AVAILABLE = False
+
+try:
+    import decord
+    from decord import VideoReader, cpu
+    decord.bridge.set_bridge('native')
+    DECORD_AVAILABLE = True
+except ImportError:
+    logger.warning("Decord not available, using fallback video processing")
+    DECORD_AVAILABLE = False
 
 class VideoSALMONN2Handler:
     def __init__(self):

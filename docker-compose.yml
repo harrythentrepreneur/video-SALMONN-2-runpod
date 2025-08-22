@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  video-salmonn2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: video-salmonn2-runpod:latest
+    container_name: video-salmonn2-server
+    
+    # GPU support
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    
+    # Environment variables
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - MODEL_PATH=/workspace/models/video-SALMONN-2
+      - MODEL_BASE=/workspace/models/video-SALMONN-2
+      - PYTHONUNBUFFERED=1
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
+    
+    # Volume mounts
+    volumes:
+      # Mount model directory (download models here for persistence)
+      - ./models:/workspace/models
+      # Mount test videos
+      - ./test_videos:/workspace/test_videos
+      # Mount output directory
+      - ./output:/workspace/output
+    
+    # Port mapping for local testing (if adding REST API)
+    ports:
+      - "8080:8080"
+    
+    # Resource limits
+    mem_limit: 32g
+    shm_size: 8g
+    
+    # Keep container running for testing
+    stdin_open: true
+    tty: true
+    
+    # Override command for local testing
+    command: python -u runpod_serverless.py
+
+  # Optional: Local testing client
+  test-client:
+    image: python:3.10-slim
+    container_name: video-salmonn2-test
+    depends_on:
+      - video-salmonn2
+    volumes:
+      - ./test_videos:/workspace/test_videos
+      - ./test_scripts:/workspace/test_scripts
+    working_dir: /workspace
+    command: tail -f /dev/null  # Keep container running
+
+# Networks
+networks:
+  default:
+    name: video-salmonn2-network
+    driver: bridge

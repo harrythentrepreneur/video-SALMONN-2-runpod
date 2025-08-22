@@ -128,7 +128,8 @@ def handler(event: Dict[str, Any]) -> Dict[str, Any]:
             }
         
         logger.info(f"Returning result: {json.dumps(result, indent=2)[:500]}...")
-        return result
+        # RunPod expects the result wrapped in 'output'
+        return {"output": result}
         
     except Exception as e:
         logger.error(f"Error in handler: {str(e)}")

@@ -50,5 +50,5 @@ ENV CUDA_VISIBLE_DEVICES=0
 RUN chmod +x runpod_minimal.py runpod_serverless.py || true
 
 # Set the handler as the default command
-# Using the real handler with actual video processing
-CMD ["python", "-u", "runpod_real.py"]
+# Using video-SALMONN-2 with PEFT for advanced video understanding
+CMD ["python", "-u", "runpod_salmonn.py"]

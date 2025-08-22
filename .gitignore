@@ -161,3 +161,7 @@ cython_debug/
 
 wandb
 output
+
+# Local test files with credentials
+test_local.py
+*_with_key.py

@@ -1,5 +1,6 @@
 # RunPod Dockerfile for video-SALMONN 2
-FROM runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04
+# Using RunPod's base image for better compatibility
+FROM runpod/pytorch:2.1.0-py3.10-cuda12.1.0-devel-ubuntu22.04
 
 # Set working directory
 WORKDIR /workspace
@@ -18,14 +19,13 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt /workspace/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install RunPod SDK
-RUN pip install --no-cache-dir runpod
-
-# Install additional dependencies for video processing
+# Install RunPod SDK and additional dependencies
 RUN pip install --no-cache-dir \
+    runpod \
     opencv-python-headless \
     imageio \
-    imageio-ffmpeg
+    imageio-ffmpeg \
+    python-dotenv
 
 # Copy the application code
 COPY . /workspace/
@@ -44,5 +44,9 @@ ENV CUDA_VISIBLE_DEVICES=0
 # RUN huggingface-cli download tsinghua-ee/video-SALMONN-2 \
 #     --local-dir /workspace/models/video-SALMONN-2
 
+# Make handler executable
+RUN chmod +x runpod_serverless.py
+
 # Set the handler as the default command
-CMD ["python", "-u", "runpod_handler.py"]
+# Using the production-ready serverless handler
+CMD ["python", "-u", "runpod_serverless.py"]

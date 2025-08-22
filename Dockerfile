@@ -25,9 +25,14 @@ RUN pip install --upgrade pip
 
 # Copy and install requirements
 COPY requirements_runpod.txt /workspace/requirements_runpod.txt
-RUN pip install --no-cache-dir -r requirements_runpod.txt || \
-    (echo "Some packages failed, installing core only..." && \
-     pip install --no-cache-dir torch torchvision transformers runpod)
+# Install each requirement separately to avoid failures
+RUN pip install --no-cache-dir torch==2.1.0 torchvision==0.16.0
+RUN pip install --no-cache-dir transformers accelerate tokenizers sentencepiece
+RUN pip install --no-cache-dir peft bitsandbytes
+RUN pip install --no-cache-dir runpod requests pillow numpy
+RUN pip install --no-cache-dir ffmpeg-python opencv-python-headless
+# Try to install remaining requirements, ignore failures
+RUN pip install --no-cache-dir -r requirements_runpod.txt || true
 
 # Copy the application code
 COPY . /workspace/
@@ -50,5 +55,5 @@ ENV CUDA_VISIBLE_DEVICES=0
 RUN chmod +x runpod_minimal.py runpod_serverless.py || true
 
 # Set the handler as the default command
-# Using video-SALMONN-2 with PEFT for advanced video understanding
-CMD ["python", "-u", "runpod_salmonn.py"]
+# Using working handler that handles missing dependencies gracefully
+CMD ["python", "-u", "runpod_working.py"]

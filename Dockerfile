@@ -20,16 +20,14 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone &
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements.txt /workspace/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# First upgrade pip to avoid issues
+RUN pip install --upgrade pip
 
-# Install RunPod SDK and additional dependencies
-RUN pip install --no-cache-dir \
-    runpod \
-    opencv-python-headless \
-    imageio \
-    imageio-ffmpeg \
-    python-dotenv
+# Copy and install requirements
+COPY requirements_runpod.txt /workspace/requirements_runpod.txt
+RUN pip install --no-cache-dir -r requirements_runpod.txt || \
+    (echo "Some packages failed, installing core only..." && \
+     pip install --no-cache-dir torch torchvision transformers runpod)
 
 # Copy the application code
 COPY . /workspace/
@@ -40,7 +38,7 @@ RUN mkdir -p /workspace/models
 # Environment variables for model paths
 ENV MODEL_PATH=/workspace/models/video-SALMONN-2
 ENV MODEL_BASE=/workspace/models/video-SALMONN-2
-ENV PYTHONPATH=/workspace:$PYTHONPATH
+ENV PYTHONPATH=/workspace:${PYTHONPATH:-}
 ENV CUDA_VISIBLE_DEVICES=0
 
 # Download model weights (optional - can be done at runtime)
@@ -48,9 +46,9 @@ ENV CUDA_VISIBLE_DEVICES=0
 # RUN huggingface-cli download tsinghua-ee/video-SALMONN-2 \
 #     --local-dir /workspace/models/video-SALMONN-2
 
-# Make handler executable
-RUN chmod +x runpod_serverless.py
+# Make handlers executable
+RUN chmod +x runpod_minimal.py runpod_serverless.py || true
 
 # Set the handler as the default command
-# Using the production-ready serverless handler
-CMD ["python", "-u", "runpod_serverless.py"]
+# Start with minimal handler to verify deployment
+CMD ["python", "-u", "runpod_minimal.py"]

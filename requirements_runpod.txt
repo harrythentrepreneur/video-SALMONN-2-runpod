@@ -1,0 +1,23 @@
+# Core dependencies for RunPod deployment
+torch==2.1.0
+torchvision==0.16.0
+torchaudio==2.1.0
+transformers==4.39.2
+accelerate==0.32.1
+tokenizers==0.15.2
+
+# Video processing
+decord==0.6.0
+opencv-python-headless
+ffmpeg-python
+moviepy==1.0.3
+
+# Audio processing
+soundfile==0.12.1
+
+# RunPod and utilities
+runpod
+python-dotenv
+numpy==1.24.4
+pillow
+requests
